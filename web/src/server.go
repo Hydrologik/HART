@@ -169,6 +169,7 @@ func main() {
 		log.Println("No .env file found")
 	}
 
+	
 	//Google OAuth variables from env
 	hconf = oauth2.Config{
 		ClientID:     os.Getenv("GID"),

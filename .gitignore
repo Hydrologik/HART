@@ -1,3 +1,5 @@
 pyScripts
 web/src/.env
 web/src/tmp
+web/mongoDrive/.env
+web/.env

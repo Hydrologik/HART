@@ -1,13 +1,16 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-
+	
 	"HART/web/mongoDrive"
+
+	"golang.org/x/exp/slices"
 )
 
 type Card struct {
@@ -124,6 +127,9 @@ func GetCardList(level string, m map[string]interface{}, c string, s string) ([]
 		}
 	}
 
+	slices.SortStableFunc(crdLst, func(a, b Card) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 	return crdLst, nil
 }
 

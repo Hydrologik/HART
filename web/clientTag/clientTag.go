@@ -1,4 +1,6 @@
-package main
+package clientTag
+
+//package main
 
 import (
 	"cmp"
@@ -7,7 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	
+
 	"HART/web/mongoDrive"
 
 	"golang.org/x/exp/slices"
@@ -29,6 +31,10 @@ func GetKeyList(m map[string]interface{}) []string {
 		}
 
 	}
+
+	slices.SortStableFunc(keyList, func(a, b string) int {
+		return cmp.Compare(a, b)
+	})
 	return keyList
 }
 
@@ -77,8 +83,22 @@ func IgnCall() (map[string]interface{}, error) {
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
-
 	result := out["content"].(map[string]interface{})
+
+	//Delete empty clients, sites, and
+	for cli, sitDic := range result {
+
+		for site, tagDic := range sitDic.(map[string]interface{}) {
+			if len(tagDic.(map[string]interface{})) <= 0 {
+				delete(sitDic.(map[string]interface{}), site)
+			}
+		}
+		if len(sitDic.(map[string]interface{})) <= 0 {
+			delete(result, cli)
+			continue
+		}
+	}
+
 	return result, nil
 }
 
@@ -112,7 +132,7 @@ func GetCardList(level string, m map[string]interface{}, c string, s string) ([]
 	for key, child := range slct {
 		if len(child.(map[string]interface{})) > 0 {
 			quryStr[i] = key
-			met, err := mongoDrive.GetAlerMetrics(mongStr, quryStr[0], quryStr[1], quryStr[2])
+			met, err := mongoDrive.GetIgnMetrics(mongStr, quryStr[0], quryStr[1], quryStr[2])
 			if err != nil {
 				return nil, err
 			}

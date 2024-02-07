@@ -4,12 +4,118 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css" integrity="sha512-HqxHUkJM0SYcbvxUw5P60SzdOTy/QVwA1JJrvaXJv4q7lmbDZCmZaqz01UPOaQveoxfYRv1tHozWGPMcuTBuvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="css/uikit.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+        <script src="js/uikit.min.js"></script>
+        <script src="js/uikit-icons.min.js"></script>
+        <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
         <title>HART</title>
     </head>
     <body>
-        <h1>Welcome to the Heart</h1>
-        <form action="/logout" method="post">
-            <input class="button is-white" type="submit" value="logout">
-        </form>
+        <nav class="uk-navbar-container" uk-navbar style="background-color: rgb(150, 181, 240);">
+            <div class="uk-navbar-left">
+                <ul class="uk-navbar-nav">
+                    <li></li>
+                    <li><a href="https://www.hydrologik.com/" target="_blank">
+                        <img src="/resources/logo_2.png" width="35" height="35" alt="hydrologik.com">
+                    </a></li>
+                    <li><a href="/" class=" uk-navbar-item" style="color: black;">Home</a></li>
+                    <li><a href="https://github.com/Hydrologik/HART" class="uk-navbar-item uk-logo" style="color: black;" target="_blank">Git</a></li>
+                </ul>
+            </div>
+            <div class="uk-navbar-center">
+                <a class="uk-navbar-item uk-logo" href="#HART-modal" uk-toggle>HART</a>
+            </div>
+            <div class="uk-navbar-right">
+                <ul class="uk-navbar-nav">
+                    <li>
+                        <form action="/logout" method="post">
+                            <button class="uk-button uk-button-primary">logout</button>
+                        </form>
+                    </li>
+                    <li></li>
+                </ul>
+            </div>
+        </nav>
+        <div id="main-body" style="background-color: azure;">
+            <div class="columns">
+                <div class="column is-fullheight is-1" style="background-color: rgb(184, 238, 238);">
+                    <div class="block"></div>
+                    <section class="hero is-fullheight">
+                        <aside class="menu">
+                            <h3 class="menu-label">
+                                DataStreams
+                            </h3>
+                            <ul class="menu-list">
+                                <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                                <li><a href="#">HETOLOK</a></li>
+                            </ul>
+                        </aside>
+                    </section>
+                </div>
+                <div class="column">
+                    <div>
+                        <ul class="uk-breadcrumb">
+                            <li><span>Home</span></li>
+                        </ul>
+                        <div class="block"></div>
+                        <div class="block">
+                            <div id="chart">
+                                <a href="/getChart" hx-get="/getChart" hx-target="#chart" hx-trigger="load" hx-indicator="#spinner">.</a>
+                                <div id="spinner" class="hidden" uk-spinner></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-one-third">
+                    <div class="block"></div>
+                    <div class="uk-card uk-card-hover uk-card-default uk-card-large">
+                        <div class="uk-card-header">
+                            <h2 class="uk-card-title">Current Alarm Statistics</h2>
+                        </div>
+                        <div class="uk-card-body">
+                            <ul uk-accordion>
+                                <li class="uk-open">
+                                    <a class="uk-accordion-title" href>Stats</a>
+                                    <div class="uk-accordion-content">
+                                        <p>Stats around all alrms</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="uk-accordion-title" href>Alert</a>
+                                    <div class="uk-accordion-content">
+                                        <p>Put Alert Alarm Paths here</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="uk-accordion-title" href>Warn</a>
+                                    <div class="uk-accordion-content">
+                                        <p>Put Warn Tag paths here</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="column"></div>
+            </div>
+        </div>
+
+        <!-- This is the modal -->
+        <div id="HART-modal" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body">
+                <h2 class="uk-modal-title">HART</h2>
+                <p>Hydorlogik Advanced Reporting Tool
+                    <br>Application for the adminstration of advanced reporting and alerting.
+                    <br>Tool allows for the view and adminstration of value based alerts and reporting intervals. Along with creation of Alert targets.
+                    <br>Version 0.8.2
+                    <br>Hydrologik LLC
+                    <br>Email esundblad@hydrologik.com with any bugs or questions.</p>
+                <p class="uk-text-right">
+                    <button class="uk-button uk-button-default uk-modal-close" type="button">Close</button>
+                </p>
+            </div>
+        </div>
     </body>
+</html>

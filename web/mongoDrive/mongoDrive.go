@@ -1,4 +1,4 @@
-//package main
+// package main
 package mongoDrive
 
 import (
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +18,7 @@ type Alert struct {
 	Site      string
 	Tag       string
 	AlertType string
-	Config   map[string]interface{}
+	Config    map[string]interface{}
 	State     string
 	EntryDate string
 	ObsvCount int
@@ -59,14 +58,13 @@ func getClient() *mongo.Client {
 
 //func EditAlert(id string) error{}
 
-
-//Function takes in level of inqury and corresponding string specification
-//Creates new mongoClient and calls Alerts db to count responses and return metrics
-func GetAlerMetrics(lvl string, c string, s string, t string) (AlertMetric, error) {
+// Function takes in level of inqury and corresponding string specification
+// Creates new mongoClient and calls Alerts db to count responses and return metrics
+func GetIgnMetrics(lvl string, c string, s string, t string) (AlertMetric, error) {
 	met := AlertMetric{
 		Alert: 0,
-		Warn: 0,
-		Good: 0,	
+		Warn:  0,
+		Good:  0,
 	}
 	var filter bson.D
 	switch lvl {
@@ -86,25 +84,25 @@ func GetAlerMetrics(lvl string, c string, s string, t string) (AlertMetric, erro
 		}
 	}()
 
-	coll := client.Database("Alerts").Collection("Reports")
+	coll := client.Database("Alerts").Collection("Ignition")
 	var res []Alert
 	cur, err := coll.Find(context.TODO(), filter)
-	if err != nil{
+	if err != nil {
 		return AlertMetric{}, err
 	}
 
-	if err = cur.All(context.TODO(), &res); err != nil{
+	if err = cur.All(context.TODO(), &res); err != nil {
 		return AlertMetric{}, err
 	}
 
-	for _, a := range(res){
-		switch a.State{
+	for _, a := range res {
+		switch a.State {
 		case "Alert":
-			met.Alert ++
+			met.Alert++
 		case "Warn":
-			met.Warn ++
+			met.Warn++
 		case "Good":
-			met.Good ++
+			met.Good++
 		}
 	}
 

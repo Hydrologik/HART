@@ -1,6 +1,7 @@
 package main
 
 import (
+	"HART/web/mongoDrive"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +10,10 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"web/clientTag"
 
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -19,6 +23,7 @@ import (
 var u = uint8(rand.Intn(255)) //Randomize cookies
 var hconf oauth2.Config
 var conf = &hconf
+var IgnData map[string]interface{}
 
 // Cookie store for persistent log-in
 var (
@@ -30,6 +35,7 @@ var templates = template.Must(template.ParseFiles(
 	"../Templates/index.html",
 	"../Templates/login.html",
 	"../Templates/logout.html",
+	"../Templates/ignCards.html",
 ))
 
 // Render the provide template string with the passed in data
@@ -67,11 +73,105 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//															Handlers																	//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("index handler called")
 	//session, _ := store.Get(r, "hydro-cookie")
+	ignCli := clientTag.GetKeyList(IgnData)
 	w = setHeaders(w)
-	renderTemplate(w, "index", "")
+	renderTemplate(w, "index", ignCli)
+}
+
+func chartHandler(w http.ResponseWriter, r *http.Request) {
+	alarmData, err := mongoDrive.GetIgnMetrics("All", "", "", "")
+	if err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	pie := charts.NewPie()
+	pie.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "Alarm Data"}),
+		charts.WithColorsOpts(opts.Colors{"#FF7373", "#FFF68F", "#00CED1"}),
+	)
+
+	items := make([]opts.PieData, 0)
+	items = append(items, opts.PieData{Name: "Alert", Value: alarmData.Alert})
+	items = append(items, opts.PieData{Name: "Warn", Value: alarmData.Warn})
+	items = append(items, opts.PieData{Name: "Good", Value: alarmData.Good})
+
+	//Custom render function to remove default document setting from go-echarts
+	pie.AddSeries("pie", items)
+	pie.Renderer = NewSnippetRenderer(pie, pie.Validate)
+	pie.Render(w)
+}
+
+func ignCardHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	type cardStr struct {
+		Er   bool
+		Ms   string
+		Cs   string
+		Cn   string
+		Bc   []string
+		Data []clientTag.Card
+	}
+	ty := r.URL.Query()["type"][0]
+	var bcStr []string
+	var data []clientTag.Card
+	var err error
+	var cs, cn string
+
+	//We use switch to customize card views that will generally be very simillar
+	switch ty {
+	case "client":
+		//Breadcrumb elements per depth
+		bcStr = []string{
+			"<span>Ignition</span>",
+		}
+		//Child String indicates the href for the next level of depth
+		cs = "/ignCards?type=site&c="
+		cn = "Sites"
+		data, err = clientTag.GetCardList(ty, IgnData, "", "")
+
+	case "site":
+		//Breadcrumb for site + Child String
+		c := r.URL.Query()["c"][0]
+		bcStr = []string{
+			"<a href=\"/ignCards?type=client\" hx-get=\"/ignCards?type=client\" hx-target=\"#main-body\">Ignition</a>",
+			fmt.Sprintf("<span>%s</span>", c),
+		}
+		cs = fmt.Sprintf("/ignCards?type=tag&c=%s&s=", c)
+		cn = "Tags"
+		data, err = clientTag.GetCardList(ty, IgnData, c, "")
+	case "tag":
+		c := r.URL.Query()["c"][0]
+		s := r.URL.Query()["s"][0]
+		bcStr = []string{
+			"<a href=\"/ignCards?type=client\" hx-get=\"/ignCards?type=client\" hx-target=\"#main-body\">Ignition</a>",
+			fmt.Sprintf("<a href=\"/ignCards?type=site&c=%s\" hx-get=\"/ignCards?type=site&c=%s\" hx-target=\"#main-body\">%s</a>", c, c, c),
+			fmt.Sprintf("<span>%s</span>", s),
+		}
+		cs = fmt.Sprintf("/ignTag?type=tag&c=%s&s=%st=", c, s)
+		cn = "Tag metrics"
+		data, err = clientTag.GetCardList(ty, IgnData, c, s)
+	}
+
+	//Error handling still make page just replace content with error message
+	if err != nil {
+		erStr := fmt.Sprintf("Error getting Card List Error %s", err.Error())
+		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr, Data: data})
+		return
+	} else if len(data) == 0 {
+		erStr := "Error get card returned empty list!"
+		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr, Data: data})
+		return
+	}
+
+	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Data: data, Cs: cs, Cn: cn})
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -163,13 +263,17 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//															Main  																		//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func main() {
+	var err error
 	//env file for sensative data and basic Aut
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
 
-	
 	//Google OAuth variables from env
 	hconf = oauth2.Config{
 		ClientID:     os.Getenv("GID"),
@@ -183,6 +287,11 @@ func main() {
 		Endpoint: google.Endpoint,
 	}
 
+	IgnData, err = clientTag.IgnCall()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	//Special handlers for Authentication
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/validate", oauthValidate)
@@ -190,6 +299,12 @@ func main() {
 
 	//Standard Pages
 	http.HandleFunc("/", makeHandler(indexHandler))
+	http.HandleFunc("/getChart", makeHandler(chartHandler))
+	http.HandleFunc("/ignCards", makeHandler(ignCardHandler))
+
+	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("../resources"))))
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("../js"))))
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("../css"))))
 
 	log.Fatal(http.ListenAndServe(":5280", nil))
 

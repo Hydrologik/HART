@@ -1,0 +1,59 @@
+<div class="columns">
+    <div class="column is-fullheight is-1" style="background-color: rgb(184, 238, 238);">
+        <div class="block"></div>
+        <section class="hero is-fullheight">
+            <aside class="menu">
+                <h3 class="menu-label">
+                    DataStreams
+                </h3>
+                <ul class="menu-list">
+                    <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                    <li><a href="#">HETOLOK</a></li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+    <div class="column">
+        <div>
+            <ul class="uk-breadcrumb">
+                <li><a href="/">Home</a></li>
+                {{range $i, $s := .Bc}}
+                    <li>{{$s}}</li>
+                {{end}}
+            </ul>
+            <div class="block"></div>
+        {{if .Er}}
+            <div class="box has-background-danger-light	">
+                <div class="content is-medium ">
+                    <h2 class="has-text-black-bis">ERROR</h2>
+                    <p class="has-text-black-bis">{{.Ms}}</p>
+                </div>
+            </div>
+        {{else}}
+            {{$Cs := .Cs}}
+            {{$Cn := .Cn}}
+            <div class="block">
+                <div class="uk-grid-small uk-child-width-1-3@s uk-text-center" uk-grid>
+                    {{ range $i, $c := .Data}}
+                    <a href="{{$Cs}}{{$c.Name}}" hx-get="{{$Cs}}{{$c.Name}}" hx-target="#main-body">
+                        <div class="uk-card uk-card-default uk-card-body uk-card-hover"
+                        {{if ne $c.Alert 0}}
+                            style="background-color: rgb(233, 160, 160);"
+                        {{else if ne $c.Warn 0}}
+                            style="background-color: rgb(243, 207, 160);"
+                        {{else}}
+                            style="background-color: rgb(160, 243, 188);"
+                        {{end}}>
+                            <p>{{$c.Name}}</p>
+                            <p>{{$Cn}}: {{$c.ChildCount}}</p>
+                            <p>Alert: {{$c.Alert}}</p>
+                            <p>Warn: {{$c.Warn}}</p>
+                            <p>Good: {{$c.Good}}</p>
+                        </div>
+                    </a>
+                    {{end}}
+                </div>
+            </div>
+        {{end}}
+    </div>
+</div>

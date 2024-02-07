@@ -16,6 +16,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -80,9 +81,9 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("index handler called")
 	//session, _ := store.Get(r, "hydro-cookie")
-	ignCli := clientTag.GetKeyList(IgnData)
+	alarms, _ := mongoDrive.GetIgnAlarms(bson.D{})
 	w = setHeaders(w)
-	renderTemplate(w, "index", ignCli)
+	renderTemplate(w, "index", alarms)
 }
 
 func chartHandler(w http.ResponseWriter, r *http.Request) {
@@ -112,12 +113,14 @@ func chartHandler(w http.ResponseWriter, r *http.Request) {
 func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 	w = setHeaders(w)
 	type cardStr struct {
-		Er   bool
-		Ms   string
-		Cs   string
-		Cn   string
-		Bc   []string
-		Data []clientTag.Card
+		Er    bool
+		Ms    string
+		Cs    string
+		Cn    string
+		Bc    []string
+		Alert []clientTag.Card
+		Warn  []clientTag.Card
+		Good  []clientTag.Card
 	}
 	ty := r.URL.Query()["type"][0]
 	var bcStr []string
@@ -163,15 +166,26 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 	//Error handling still make page just replace content with error message
 	if err != nil {
 		erStr := fmt.Sprintf("Error getting Card List Error %s", err.Error())
-		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr, Data: data})
+		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr})
 		return
 	} else if len(data) == 0 {
 		erStr := "Error get card returned empty list!"
-		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr, Data: data})
+		renderTemplate(w, "ignCards", cardStr{Er: true, Ms: erStr, Bc: bcStr})
 		return
 	}
 
-	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Data: data, Cs: cs, Cn: cn})
+	var alert, warn, good []clientTag.Card
+	for _, c := range data {
+		if c.Alert > 0 {
+			alert = append(alert, c)
+		} else if c.Warn > 0 {
+			warn = append(warn, c)
+		} else {
+			good = append(good, c)
+		}
+	}
+
+	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Warn: warn, Alert: alert, Good: good, Cs: cs, Cn: cn})
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {

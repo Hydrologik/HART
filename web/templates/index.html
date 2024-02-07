@@ -38,9 +38,9 @@
                 </ul>
             </div>
         </nav>
-        <div id="main-body" style="background-color: azure;">
+        <div id="main-body" style="background-color: rgb(255, 255, 255);">
             <div class="columns">
-                <div class="column is-fullheight is-1" style="background-color: rgb(184, 238, 238);">
+                <div class="column is-fullheight is-1" style="background-color: rgb(179, 203, 255);">
                     <div class="block"></div>
                     <section class="hero is-fullheight">
                         <aside class="menu">
@@ -50,20 +50,50 @@
                             <ul class="menu-list">
                                 <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
                                 <li><a href="#">HETOLOK</a></li>
+                                <li><a href="#">Go4</a></li>
                             </ul>
                         </aside>
                     </section>
                 </div>
                 <div class="column">
                     <div>
-                        <ul class="uk-breadcrumb">
-                            <li><span>Home</span></li>
-                        </ul>
                         <div class="block"></div>
                         <div class="block">
                             <div id="chart">
                                 <a href="/getChart" hx-get="/getChart" hx-target="#chart" hx-trigger="load" hx-indicator="#spinner">.</a>
                                 <div id="spinner" class="hidden" uk-spinner></div>
+                            </div>
+                            <div>
+                                <h1 class="uk-article-title">Alarms</h1>
+                                <div style="overflow-y: scroll; height: 200px;">
+                                    <table class="uk-table uk-table-justify uk-table-divider" style="background-color: white">
+                                        <thead>
+                                            <th>State</th>
+                                            <th>Type</th>
+                                            <th>Source</th>
+                                            <th>Entry Date</th>
+                                        </thead>
+                                        <tbody>
+                                            {{$Alert := "Alert"}}
+                                            {{$Warn := "Warn"}}
+                                            {{range $i, $a := .}}
+                                                <tr
+                                                {{if eq $a.State $Alert}}
+                                                    style="background-color: rgb(240, 185, 196);"
+                                                {{else if eq $a.State $Warn}}
+                                                    style="background-color: rgb(247, 226, 194);"
+                                                {{else}}
+                                                    style="background-color: rgb(148, 240, 160);"
+                                                {{end}}>
+                                                    <td>{{$a.State}}</td>
+                                                    <td>{{$a.Type}}</td>
+                                                    <td>{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</td>
+                                                    <td>{{$a.EntryDate}}</td>
+                                                </tr>
+                                            {{end}}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

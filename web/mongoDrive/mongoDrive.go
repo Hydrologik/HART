@@ -17,7 +17,7 @@ type Alert struct {
 	Client    string
 	Site      string
 	Tag       string
-	AlertType string
+	Type      string
 	Config    map[string]interface{}
 	State     string
 	EntryDate string
@@ -54,7 +54,27 @@ func getClient() *mongo.Client {
 //TODO:
 //func AddAlert(a Alert) error{}
 
-//func GetAlerts() ([]Alert, error){}
+func GetIgnAlarms(filter bson.D) ([]Alert, error) {
+	client := getClient()
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database("Alerts").Collection("Ignition")
+	var res []Alert
+	cur, err := coll.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cur.All(context.TODO(), &res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+
+}
 
 //func EditAlert(id string) error{}
 
@@ -84,14 +104,8 @@ func GetIgnMetrics(lvl string, c string, s string, t string) (AlertMetric, error
 		}
 	}()
 
-	coll := client.Database("Alerts").Collection("Ignition")
-	var res []Alert
-	cur, err := coll.Find(context.TODO(), filter)
+	res, err := GetIgnAlarms(filter)
 	if err != nil {
-		return AlertMetric{}, err
-	}
-
-	if err = cur.All(context.TODO(), &res); err != nil {
 		return AlertMetric{}, err
 	}
 

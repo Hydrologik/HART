@@ -1,6 +1,7 @@
 package main
 
 import (
+	"HART/web/alarmDrive"
 	"HART/web/clientTag"
 	"HART/web/mongoDrive"
 	"context"
@@ -13,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -518,6 +520,23 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 //															Main  																		//
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func runAlarms(){
+	ext := time.Hour
+	var err error
+	
+	for {
+		fmt.Println("Running Ignition call\nRunning Alert")
+		IgnData, err = clientTag.IgnCall()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		alarmDrive.RunIgnAlerts(IgnData)
+		time.Sleep(ext)
+	}
+	
+}
+
+
 func main() {
 	var err error
 	//env file for sensative data and basic Aut
@@ -566,6 +585,8 @@ func main() {
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("../resources"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("../js"))))
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("../css"))))
+
+	go runAlarms()
 
 	log.Fatal(http.ListenAndServe(":5280", nil))
 

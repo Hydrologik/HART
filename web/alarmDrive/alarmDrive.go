@@ -1,4 +1,4 @@
-package main
+package alarmDrive
 
 import (
 	"HART/web/clientTag"
@@ -172,7 +172,34 @@ func RunIgnAlerts(ignData map[string]interface{}) error {
 	return nil
 }
 
+func injectBaseAlarm(d map[string]interface{}) error {
+	for client, sitDi := range d {
+		for site, tDic := range sitDi.(map[string]interface{}) {
+			for tag, _ := range tDic.(map[string]interface{}) {
+				newAl := mongoDrive.Alert{
+					Client:    client,
+					Site:      site,
+					Tag:       tag,
+					Type:      "BadNoData",
+					State:     "Good",
+					Threshold: 3,
+					Emails:    []string{"esundblad@hydrologik.com"},
+				}
+
+				err := mongoDrive.AddIgnAlarm(newAl)
+				if err != nil {
+					fmt.Println("Encountered Error inject new alarm:\n%s", newAl)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
 	data, _ := clientTag.IgnCall()
-	RunIgnAlerts(data)
+	//RunIgnAlerts(data)
+
+	injectBaseAlarm(data)
+
 }

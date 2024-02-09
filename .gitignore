@@ -3,3 +3,4 @@ web/src/.env
 web/src/tmp
 web/mongoDrive/.env
 web/.env
+web/alarmDrive/.env

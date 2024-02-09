@@ -4,4 +4,5 @@ use (
 	./web/mongoDrive
 	./web/src
 	./web/clientTag
+	./web/alarmDrive
 )

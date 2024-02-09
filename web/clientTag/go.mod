@@ -1,4 +1,4 @@
-module web/clientTag
+module HART/web/clientTag
 
 go 1.22.0
 

@@ -49,6 +49,7 @@ var templates = template.Must(template.ParseFiles(
 	"../Templates/ignTags.html",
 	"../Templates/ignAlarm.html",
 	"../Templates/addIgnAlarm.html",
+	"../Templates/ignEditAlarm.html",
 ))
 
 // Render the provide template string with the passed in data
@@ -108,7 +109,7 @@ func chartHandler(w http.ResponseWriter, r *http.Request) {
 	pie := charts.NewPie()
 	pie.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{Title: "Alarm Data"}),
-		charts.WithColorsOpts(opts.Colors{"#FF7373", "#FFF68F", "#00CED1"}),
+		charts.WithColorsOpts(opts.Colors{"#ea9999", "#ffe599", "#bff8a7"}),
 	)
 
 	items := make([]opts.PieData, 0)
@@ -341,6 +342,89 @@ func addIgnAlarmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ignEditHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	c := r.URL.Query()["c"][0]
+	s := r.URL.Query()["s"][0]
+	t := r.URL.Query()["t"][0]
+	ty := r.URL.Query()["type"][0]
+	url := fmt.Sprintf("/ignTags?c=%s&s=%s&t=%s", c, s, t)
+	path := map[string]string{"c": c, "s": s, "t": t, "ty": ty}
+	data := struct {
+		Er     bool
+		Ms     string
+		Alarm  mongoDrive.Alert
+		Emails string
+		Path   map[string]string
+	}{Er: false, Ms: "", Path: path}
+	switch r.Method {
+	case "GET":
+
+		alarm, err := mongoDrive.GetIgnAlarms(bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}, {Key: "type", Value: ty}})
+		if err != nil {
+			data.Er = true
+			data.Ms = err.Error()
+			renderTemplate(w, "ignEditAlarm", data)
+			return
+		}
+		data.Alarm = alarm[0] //Should only be one return
+		data.Emails = strings.Join(alarm[0].Emails, ", ")
+		renderTemplate(w, "ignEditAlarm", data)
+		return
+
+	case "POST":
+		r.ParseForm()
+		uAlmLst, _ := mongoDrive.GetIgnAlarms(bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}, {Key: "type", Value: ty}})
+		ual := uAlmLst[0]
+		thr, _ := strconv.Atoi(r.PostForm["threshold"][0])
+
+		ual.Threshold = thr
+		delete(r.PostForm, "threshold")
+
+		ual.Emails = strings.Split(r.PostForm["email-list"][0], ",")
+		delete(r.PostForm, "email-list")
+
+		for k, v := range r.PostForm {
+			//fmt.Print(k, v)
+			val, _ := strconv.Atoi(v[0])
+			ual.Config[k] = val
+		}
+
+		err := mongoDrive.EditIgnAlarm(ual)
+		if err != nil {
+			data.Er = true
+			data.Ms = err.Error()
+			renderTemplate(w, "ignEditAlarm", data)
+		}
+		http.Redirect(w, r, url, http.StatusFound)
+
+	}
+
+}
+
+func ignDeletHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	c := r.URL.Query()["c"][0]
+	s := r.URL.Query()["s"][0]
+	t := r.URL.Query()["t"][0]
+	ty := r.URL.Query()["type"][0]
+	url := fmt.Sprintf("/ignTags?c=%s&s=%s&t=%s", c, s, t)
+	filter := bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}, {Key: "type", Value: ty}}
+	data := struct {
+		Er bool
+		Ms string
+	}{Er: false, Ms: ""}
+
+	err := mongoDrive.DeleteIgnAlarm(filter)
+	if err != nil {
+		data.Er = true
+		data.Ms = err.Error()
+		renderTemplate(w, "ignEditAlarm", data)
+	}
+
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("Login handler Called")
 	session, _ := store.Get(r, "hydro-cookie")
@@ -476,6 +560,8 @@ func main() {
 	http.HandleFunc("/ignTags", makeHandler(ignTagHandler))
 	http.HandleFunc("/ignAlarms", makeHandler(ignAlarmsHandler))
 	http.HandleFunc("/addIgnAlarm", makeHandler(addIgnAlarmHandler))
+	http.HandleFunc("/editIgnAlarm", makeHandler(ignEditHandler))
+	http.HandleFunc("/deleteIgnAlarm", makeHandler(ignDeletHandler))
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("../resources"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("../js"))))

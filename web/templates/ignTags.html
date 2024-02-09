@@ -44,8 +44,9 @@
 
                             </div>
                         </div>
+                        {{$Path := .Path}}
                         {{range $i, $a := .Alarms}}
-                        <div>
+                        <a href="/editIgnAlarm?type={{$a.Type}}&c={{$Path.c}}&s={{$Path.s}}&t={{$Path.t}}" hx-get="/editIgnAlarm?type={{$a.Type}}&c={{$Path.c}}&s={{$Path.s}}&t={{$Path.t}}" hx-target="#main-body">
                             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-text-center" 
                             {{if eq $a.State $Alert}}
                                 style="background-color: rgb(240, 185, 196);"
@@ -65,7 +66,7 @@
                                     <p>{{$e}}</p>
                                 {{end}}
                             </div>
-                        </div>
+                        </a>
                         {{end}}
                         <a href="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-get="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-target="#main-body">
                             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-text-center">

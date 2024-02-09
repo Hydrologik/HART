@@ -1,0 +1,70 @@
+<div class="columns">
+    <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
+        <div class="block"></div>
+        <section class="hero is-fullheight">
+            <aside class="menu" uk-sticky>
+                <h3 class="menu-label">
+                    DataStreams
+                </h3>
+                <ul class="menu-list">
+                    <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                    <li><a href="#">HETOLOK</a></li>
+                    <li><a href="#">Go4</a></li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+    <div class="column">
+        {{if .Er}}
+            <div class="box has-background-danger-light	">
+                <div class="content is-medium ">
+                    <h2 class="has-text-black-bis">ERROR</h2>
+                    <p class="has-text-black-bis">{{.Ms}}</p>
+                </div>
+            </div>
+        {{else}}
+            <div class="uk-card uk-card-default uk-card-body">
+                <h3 class="uk-card-title">Edit Alarm</h3>
+                <form id="add-alarm" class="uk-form-stacked" action="/editIgnAlarm?type={{.Path.ty}}&c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" method="post">
+                    
+                    <div class="uk-margin">
+                        <label class="uk-form-label" for="alarm-type-select">Alarm Type</label>
+                        <div class="uk-form-controls">   
+                            <input class="uk-input" type="text" value="{{.Alarm.Type}}" aria-label="Input" disabled>
+                        </div>
+                    </div>
+
+                    {{range $k, $v := .Alarm.Config}}
+                        <div class="uk-margin">
+                            <label class="uk-form-label" for="{{$k}}">{{$k}}</label>
+                            <div class="uk-form-controls">   
+                                <input class="uk-input" id="{{$k}}" name="{{$k}}" type="number" value="{{$v}}" aria-label="Input">
+                            </div>
+                        </div>
+                    {{end}}
+
+                    <div class="uk-margin">
+                        <label class="uk-form-label" for="threshold">Alert threshold</label>
+                        <div class="uk-form-controls">
+                            <input class="uk-input" id="threshold" name="threshold" type="number" value="{{.Alarm.Threshold}}">
+                        </div>
+                    </div>
+                    <div class="uk-margin">
+                        <label class="uk-form-label" for="email-list">Alert List (seperate by comma ,)</label>
+                        <textarea id="email-list" name="email-list" class="uk-textarea" rows="5" aria-label="Textarea">{{.Emails}}</textarea>
+                    </div>
+
+                    <div id="specific-args"></div>
+                    <div class="uk-margin">
+                        <p class="uk-text-right">
+                            <button class="uk-button uk-button-default" type="button" hx-get="/ignTags?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-target="#main-body" >Cancel</button>
+                            <button class="uk-button uk-button-primary" hx-post="/editIgnAlarm?type={{.Path.ty}}&c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}"  hx-target="#main-body" type="submit">Update</button>
+                            <button class="uk-button uk-button-danger" hx-confirm="Confirm Delete Alarm {{.Alarm.Type}}" hx-get="/deleteIgnAlarm?type={{.Path.ty}}&c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}"  hx-target="#main-body" type="submit">Delete</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        {{end}}
+    </div>
+    <div class="column"></div>
+</div>

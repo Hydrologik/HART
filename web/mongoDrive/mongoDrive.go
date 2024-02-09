@@ -3,6 +3,7 @@ package mongoDrive
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -88,8 +89,41 @@ func GetIgnAlarms(filter bson.D) ([]Alert, error) {
 
 }
 
-//TODO
-//func EditAlert(id string) error{}
+//Edit alarm takes in alarm edits struct and replaces the current alarm in db
+func EditIgnAlarm(a Alert) error{
+	client := getClient()
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database("Alerts").Collection("Ignition")
+	filter := bson.D{{Key: "client", Value: a.Client}, {Key: "site", Value: a.Site}, {Key: "tag", Value: a.Tag}, {Key: "type", Value: a.Type}}
+	_, err := coll.ReplaceOne(context.TODO(), filter, a)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+//Delete ign alarm takes in a single alarm filter and deletes from db
+func DeleteIgnAlarm(f bson.D) error{
+	client := getClient()
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database("Alerts").Collection("Ignition")
+	dc, err := coll.DeleteOne(context.TODO(), f)
+	if err != nil{
+		return err
+	}
+	if dc.DeletedCount != 1{
+		return errors.New("delete failed to find alarm to delete")
+	}
+	return nil
+}
 
 // Function takes in level of inqury and corresponding string specification
 // Creates new mongoClient and calls Alerts db to count responses and return metrics

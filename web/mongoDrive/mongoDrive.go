@@ -51,8 +51,7 @@ func getClient() *mongo.Client {
 
 }
 
-
-func AddIgnAlarm(a Alert) error{
+func AddIgnAlarm(a Alert) error {
 	client := getClient()
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
@@ -61,7 +60,7 @@ func AddIgnAlarm(a Alert) error{
 	}()
 	coll := client.Database("Alerts").Collection("Ignition")
 	_, err := coll.InsertOne(context.TODO(), a)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
@@ -89,7 +88,6 @@ func GetIgnAlarms(filter bson.D) ([]Alert, error) {
 
 }
 
-
 //TODO
 //func EditAlert(id string) error{}
 
@@ -104,11 +102,11 @@ func GetIgnMetrics(lvl string, c string, s string, t string) (AlertMetric, error
 	var filter bson.D
 	switch lvl {
 	case "client":
-		filter = bson.D{{"client", c}}
+		filter = bson.D{{Key: "client", Value: c}}
 	case "site":
-		filter = bson.D{{"client", c}, {"site", s}}
+		filter = bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}}
 	case "tag":
-		filter = bson.D{{"client", c}, {"site", s}, {"tag", t}}
+		filter = bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}}
 	default:
 		filter = bson.D{{}}
 	}

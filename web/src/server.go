@@ -227,7 +227,7 @@ func ignTagHandler(w http.ResponseWriter, r *http.Request) {
 
 	tagVal := IgnData[c].(map[string]interface{})[s].(map[string]interface{})[t].(map[string]interface{})
 	//fmt.Println(tagVal)
-	alarms, err := mongoDrive.GetIgnAlarms(bson.D{{"client", c}, {"site", s}, {"tag", t}})
+	alarms, err := mongoDrive.GetIgnAlarms(bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}})
 	if err != nil {
 		data := tagData{Er: true, Ms: err.Error(), Bc: bc}
 		renderTemplate(w, "ignTags", data)
@@ -268,7 +268,7 @@ func addIgnAlarmHandler(w http.ResponseWriter, r *http.Request) {
 		}{Er: false, Ms: "", Path: path}
 		var availAlrm = make(map[string]IgnAlarm)
 
-		alarms, err := mongoDrive.GetIgnAlarms(bson.D{{"client", c}, {"site", s}, {"tag", t}})
+		alarms, err := mongoDrive.GetIgnAlarms(bson.D{{Key: "client", Value: c}, {Key: "site", Value: s}, {Key: "tag", Value: t}})
 		if err != nil {
 			data.Er = true
 			data.Ms = err.Error()

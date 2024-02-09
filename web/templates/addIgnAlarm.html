@@ -1,0 +1,56 @@
+<div class="columns">
+    <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
+        <div class="block"></div>
+        <section class="hero is-fullheight">
+            <aside class="menu" uk-sticky>
+                <h3 class="menu-label">
+                    DataStreams
+                </h3>
+                <ul class="menu-list">
+                    <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                    <li><a href="#">HETOLOK</a></li>
+                    <li><a href="#">Go4</a></li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+    <div class="column"></div>
+    <div class="column">
+        <div class="block"></div>
+        {{if .Er}}
+                <div class="box has-background-danger-light	">
+                    <div class="content is-medium ">
+                        <h2 class="has-text-black-bis">ERROR</h2>
+                        <p class="has-text-black-bis">{{.Ms}}</p>
+                    </div>
+                </div>
+        {{else}}
+            <div class="uk-card uk-card-default uk-card-body">
+                <h3 class="uk-card-title">Add Alarm</h3>
+                <form id="add-alarm" class="uk-form-stacked" action="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" method="post">
+                    
+                    <div class="uk-margin">
+                        <label class="uk-form-label" for="alarm-type-select">Alarm Type</label>
+                        <div class="uk-form-controls">
+                            <select name="type" class="uk-select" hx-get="/ignAlarms" hx-target="#specific-args"  id="alarm-type-select">
+                                <option disabled selected value="">Select Alarm Type</option>
+                                {{range $k, $v := .AlrmChoic}}
+                                    <option value="{{$k}}">{{$v.Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="specific-args"></div>
+                    <div class="uk-margin">
+                        <p class="uk-text-right">
+                            <button class="uk-button uk-button-default uk-modal-close" type="button" hx-get="/ignTags?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-target="#main-body" >Cancel</button>
+                            <button class="uk-button uk-button-primary uk-modal-close" hx-post="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}"  hx-target="#main-body" type="submit">Add</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        {{end}}
+    </div>
+    <div class="column"></div>
+</div>

@@ -1,0 +1,18 @@
+{{range $k, $v := .}}
+    <div class="uk-margin">
+        <label class="uk-form-label" for="{{$k}}-stacked-text">{{$k}}</label>
+        <div class="uk-form-controls">
+            <input class="uk-input" name="{{$k}}" id="{{$k}}-stacked-text" type="number" placeholder="{{$v}}">
+        </div>
+    </div>
+{{end}}
+<div class="uk-margin">
+    <label class="uk-form-label" for="threshold">Alert threshold</label>
+    <div class="uk-form-controls">
+        <input class="uk-input" id="threshold" name="threshold" type="number" placeholder="# of observances before move from warin to alert">
+    </div>
+</div>
+<div class="uk-margin">
+    <label class="uk-form-label" for="email-list">Alert List</label>
+    <textarea id="email-list" name="email-list" class="uk-textarea" rows="5" placeholder="Email list for Alert notification Seperate by ' , '" aria-label="Textarea"></textarea>
+</div>

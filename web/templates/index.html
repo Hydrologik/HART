@@ -40,20 +40,22 @@
         </nav>
         <div id="main-body" style="background-color: rgb(255, 255, 255);">
             <div class="columns">
-                <div class="column is-fullheight is-1" style="background-color: rgb(255, 105, 105);">
+                <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
                     <div class="block"></div>
-                    <section class="hero is-fullheight">
-                        <aside class="menu">
-                            <h3 class="menu-label">
-                                DataStreams
-                            </h3>
-                            <ul class="menu-list">
-                                <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
-                                <li><a href="#">HETOLOK</a></li>
-                                <li><a href="#">Go4</a></li>
-                            </ul>
-                        </aside>
-                    </section>
+                    <div>
+                        <section class="hero is-fullheight">
+                            <aside class="menu">
+                                <h3 class="menu-label">
+                                    DataStreams
+                                </h3>
+                                <ul class="menu-list">
+                                    <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                                    <li><a href="#">HETOLOK</a></li>
+                                    <li><a href="#">Go4</a></li>
+                                </ul>
+                            </aside>
+                        </section>
+                    </div>
                 </div>
                 <div class="column">
                     <div>
@@ -66,8 +68,9 @@
                             <div>
                                 <h1 class="uk-article-title">Alarms</h1>
                                 <div style="overflow-y: scroll; height: 200px;">
-                                    <table class="uk-table uk-table-justify uk-table-divider" style="background-color: white">
+                                    <table class="uk-table uk-table-justify uk-table-divider">
                                         <thead>
+                                            <th></th>
                                             <th>State</th>
                                             <th>Type</th>
                                             <th>Source</th>
@@ -85,9 +88,10 @@
                                                 {{else}}
                                                     style="background-color: rgb(148, 240, 160);"
                                                 {{end}}>
+                                                    <td></td>
                                                     <td>{{$a.State}}</td>
                                                     <td>{{$a.Type}}</td>
-                                                    <td>{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</td>
+                                                    <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
                                                     <td>{{$a.EntryDate}}</td>
                                                 </tr>
                                             {{end}}

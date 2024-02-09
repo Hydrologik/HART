@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"text/template"
 	"web/clientTag"
 
@@ -26,6 +28,13 @@ var hconf oauth2.Config
 var conf = &hconf
 var IgnData map[string]interface{}
 
+type IgnAlarm struct {
+	Name string
+	Args map[string]string
+}
+
+var IgnAlarms = make(map[string]IgnAlarm)
+
 // Cookie store for persistent log-in
 var (
 	key   = []byte{239, 57, 183, 33, 121, 175, 214, u, 52, 235, 33, 167, 74, 91, 153, 39}
@@ -37,6 +46,9 @@ var templates = template.Must(template.ParseFiles(
 	"../Templates/login.html",
 	"../Templates/logout.html",
 	"../Templates/ignCards.html",
+	"../Templates/ignTags.html",
+	"../Templates/ignAlarm.html",
+	"../Templates/addIgnAlarm.html",
 ))
 
 // Render the provide template string with the passed in data
@@ -158,7 +170,7 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("<a href=\"/ignCards?type=site&c=%s\" hx-get=\"/ignCards?type=site&c=%s\" hx-target=\"#main-body\">%s</a>", c, c, c),
 			fmt.Sprintf("<span>%s</span>", s),
 		}
-		cs = fmt.Sprintf("/ignTag?type=tag&c=%s&s=%st=", c, s)
+		cs = fmt.Sprintf("/ignTags?&c=%s&s=%s&t=", c, s)
 		cn = "Tag metrics"
 		data, err = clientTag.GetCardList(ty, IgnData, c, s)
 	}
@@ -186,6 +198,147 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Warn: warn, Alert: alert, Good: good, Cs: cs, Cn: cn})
+}
+
+func ignTagHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	c := r.URL.Query()["c"][0]
+	s := r.URL.Query()["s"][0]
+	t := r.URL.Query()["t"][0]
+	path := map[string]string{
+		"c": c, "s": s, "t": t,
+	}
+
+	bc := []string{
+		"<a href=\"/ignCards?type=client\" hx-get=\"/ignCards?type=client\" hx-target=\"#main-body\">Ignition</a>",
+		fmt.Sprintf("<a href=\"/ignCards?type=site&c=%s\" hx-get=\"/ignCards?type=site&c=%s\" hx-target=\"#main-body\">%s</a>", c, c, c),
+		fmt.Sprintf("<a href=\"/ignCards?type=tag&c=%s&s=%s\" hx-get=\"/ignCards?type=tag&c=%s&s=%s\" hx-target=\"#main-body\">%s</a>", c, s, c, s, s),
+		fmt.Sprintf("<span>%s</span>", t),
+	}
+
+	type tagData struct {
+		Er      bool
+		Ms      string
+		Bc      []string
+		TagVals map[string]interface{}
+		Alarms  []mongoDrive.Alert
+		Path    map[string]string
+	}
+
+	tagVal := IgnData[c].(map[string]interface{})[s].(map[string]interface{})[t].(map[string]interface{})
+	//fmt.Println(tagVal)
+	alarms, err := mongoDrive.GetIgnAlarms(bson.D{{"client", c}, {"site", s}, {"tag", t}})
+	if err != nil {
+		data := tagData{Er: true, Ms: err.Error(), Bc: bc}
+		renderTemplate(w, "ignTags", data)
+		return
+	}
+
+	//For adding a new alarm remove the option to add already added alarms
+
+	data := tagData{Er: false, Ms: "", Bc: bc, TagVals: tagVal, Alarms: alarms, Path: path}
+	renderTemplate(w, "ignTags", data)
+
+}
+
+func ignAlarmsHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	ty := r.URL.Query()["type"][0]
+	alarm := IgnAlarms[ty]
+	renderTemplate(w, "ignAlarm", alarm.Args)
+}
+
+func addIgnAlarmHandler(w http.ResponseWriter, r *http.Request) {
+	w = setHeaders(w)
+	c := r.URL.Query()["c"][0]
+	s := r.URL.Query()["s"][0]
+	t := r.URL.Query()["t"][0]
+	path := map[string]string{
+		"c": c, "s": s, "t": t,
+	}
+
+	url := fmt.Sprintf("/ignTags?c=%s&s=%s&t=%s", c, s, t)
+	switch r.Method {
+	case "GET":
+		data := struct {
+			Er        bool
+			Ms        string
+			Path      map[string]string
+			AlrmChoic map[string]IgnAlarm
+		}{Er: false, Ms: "", Path: path}
+		var availAlrm = make(map[string]IgnAlarm)
+
+		alarms, err := mongoDrive.GetIgnAlarms(bson.D{{"client", c}, {"site", s}, {"tag", t}})
+		if err != nil {
+			data.Er = true
+			data.Ms = err.Error()
+			renderTemplate(w, "addIgnAlarm", data)
+		}
+
+		for key, val := range IgnAlarms {
+			availAlrm[key] = val
+		}
+		for _, alert := range alarms {
+			delete(availAlrm, alert.Type)
+		}
+		data.AlrmChoic = availAlrm
+		renderTemplate(w, "addIgnAlarm", data)
+
+	case "POST":
+		r.ParseForm()
+		ty := r.PostForm["type"][0]
+		var args = make(map[string]interface{})
+		var err error
+		var v int
+		switch ty {
+		case "HighVal":
+			vs := r.PostForm["High"][0]
+			v, err = strconv.Atoi(vs)
+			args["High"] = v
+		case "LowVal":
+			vs := r.PostForm["Low"][0]
+			v, err = strconv.Atoi(vs)
+			args["Low"] = v
+		case "StaleVal":
+			vs := r.PostForm["CountThresh"][0]
+			v, err = strconv.Atoi(vs)
+			args["CountThresh"] = v
+		}
+
+		thStr := r.PostForm["threshold"][0]
+		if err != nil {
+			http.Redirect(w, r, url, http.StatusFound)
+			return
+		}
+		thres, err := strconv.Atoi(thStr)
+		if err != nil {
+			http.Redirect(w, r, url, http.StatusFound)
+			return
+		}
+
+		na := mongoDrive.Alert{
+			Client:    c,
+			Site:      s,
+			Tag:       t,
+			Type:      ty,
+			Config:    args,
+			State:     "Good",
+			EntryDate: "",
+			ObsvCount: 0,
+			Threshold: thres,
+			Emails:    strings.Split(r.PostForm["email-list"][0], ","),
+		}
+
+		//fmt.Printf("New Alarm details:\n%s\n ", na)
+		err = mongoDrive.AddIgnAlarm(na)
+		if err != nil {
+			fmt.Println(err.Error())
+			http.Redirect(w, r, url, http.StatusFound)
+			return
+		}
+
+		http.Redirect(w, r, url, http.StatusFound)
+	}
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -288,6 +441,11 @@ func main() {
 		log.Println("No .env file found")
 	}
 
+	IgnAlarms["NoneVal"] = IgnAlarm{Name: "None or nil value alarm"}
+	IgnAlarms["HighVal"] = IgnAlarm{Name: "High threshold alarm", Args: map[string]string{"High": "High Threshold Value"}}
+	IgnAlarms["LowVal"] = IgnAlarm{Name: "Low threshold alarm", Args: map[string]string{"Low": "Low Threshold Value"}}
+	IgnAlarms["StaleVal"] = IgnAlarm{Name: "Stale data alarm", Args: map[string]string{"CountThresh": "Number of observances of the same value to be considered stale"}}
+
 	//Google OAuth variables from env
 	hconf = oauth2.Config{
 		ClientID:     os.Getenv("GID"),
@@ -315,6 +473,9 @@ func main() {
 	http.HandleFunc("/", makeHandler(indexHandler))
 	http.HandleFunc("/getChart", makeHandler(chartHandler))
 	http.HandleFunc("/ignCards", makeHandler(ignCardHandler))
+	http.HandleFunc("/ignTags", makeHandler(ignTagHandler))
+	http.HandleFunc("/ignAlarms", makeHandler(ignAlarmsHandler))
+	http.HandleFunc("/addIgnAlarm", makeHandler(addIgnAlarmHandler))
 
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("../resources"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("../js"))))

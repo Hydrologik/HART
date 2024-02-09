@@ -51,8 +51,21 @@ func getClient() *mongo.Client {
 
 }
 
-//TODO:
-//func AddAlert(a Alert) error{}
+
+func AddIgnAlarm(a Alert) error{
+	client := getClient()
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	coll := client.Database("Alerts").Collection("Ignition")
+	_, err := coll.InsertOne(context.TODO(), a)
+	if err != nil{
+		return err
+	}
+	return nil
+}
 
 func GetIgnAlarms(filter bson.D) ([]Alert, error) {
 	client := getClient()
@@ -76,6 +89,8 @@ func GetIgnAlarms(filter bson.D) ([]Alert, error) {
 
 }
 
+
+//TODO
 //func EditAlert(id string) error{}
 
 // Function takes in level of inqury and corresponding string specification
@@ -89,20 +104,14 @@ func GetIgnMetrics(lvl string, c string, s string, t string) (AlertMetric, error
 	var filter bson.D
 	switch lvl {
 	case "client":
-		filter = bson.D{{"Client", c}}
+		filter = bson.D{{"client", c}}
 	case "site":
-		filter = bson.D{{"Client", c}, {"Site", s}}
+		filter = bson.D{{"client", c}, {"site", s}}
 	case "tag":
-		filter = bson.D{{"Client", c}, {"Site", s}, {"Tag", t}}
+		filter = bson.D{{"client", c}, {"site", s}, {"tag", t}}
 	default:
 		filter = bson.D{{}}
 	}
-	client := getClient()
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
 
 	res, err := GetIgnAlarms(filter)
 	if err != nil {

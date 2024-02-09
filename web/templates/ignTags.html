@@ -1,0 +1,81 @@
+<div class="columns">
+    <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
+        <div class="block"></div>
+        <section class="hero is-fullheight">
+            <aside class="menu" uk-sticky>
+                <h3 class="menu-label">
+                    DataStreams
+                </h3>
+                <ul class="menu-list">
+                    <li><a href="/ignCards?type=client" hx-get="/ignCards?type=client" hx-target="#main-body">Ignition</a></li>
+                    <li><a href="#">HETOLOK</a></li>
+                    <li><a href="#">Go4</a></li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+    <div class="column">
+        <div>
+            <ul class="uk-breadcrumb">
+                <li><a href="/">Home</a></li>
+                {{range $i, $s := .Bc}}
+                    <li>{{$s}}</li>
+                {{end}}
+            </ul>
+            <div class="block"></div>
+            {{if .Er}}
+                <div class="box has-background-danger-light	">
+                    <div class="content is-medium ">
+                        <h2 class="has-text-black-bis">ERROR</h2>
+                        <p class="has-text-black-bis">{{.Ms}}</p>
+                    </div>
+                </div>
+            {{else}}
+                <div class="block">         
+                    {{$Alert := "Alert"}}
+                    {{$Warn := "Warn"}}
+                    <div class="uk-grid-small uk-child-width-1-3@s" uk-grid>
+                        <div>
+                            <div class="uk-card uk-card-large uk-card-default uk-card-body">
+                                <h3 class="uk-card-title">Current Values</h3>
+                                <p>Value: {{.TagVals.Value}}</p>
+                                <p>Quality: {{.TagVals.Quality}}</p>
+                                <p>Time Stamp: {{.TagVals.Timestamp}}</p>
+
+                            </div>
+                        </div>
+                        {{range $i, $a := .Alarms}}
+                        <div>
+                            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-text-center" 
+                            {{if eq $a.State $Alert}}
+                                style="background-color: rgb(240, 185, 196);"
+                            {{else if eq $a.State $Warn}}
+                                style="background-color: rgb(247, 226, 194);"
+                            {{else}}
+                                style="background-color: rgb(157, 241, 168);"
+                            {{end}}>
+                                <h3 class="uk-card-title">{{$a.Type}}</h3>
+                                <p>State: {{$a.State}}</p>
+                                <p>Date entered current state: {{$a.EntryDate}}</p>
+                                <p>Observances at current state: {{$a.ObsvCount}}</p>
+                                <p>Alerting Threshold: {{$a.Threshold}} Hours</p>
+                                <p>Emails to Alert:
+                                </p>
+                                {{range $p, $e := $a.Emails}}
+                                    <p>{{$e}}</p>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+                        <a href="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-get="/addIgnAlarm?c={{.Path.c}}&s={{.Path.s}}&t={{.Path.t}}" hx-target="#main-body">
+                            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-text-center">
+                                <h3 class="uk-card-title">Add New Alarm</h3>
+                                <img src="/resources/add.png" width="102" height="102" alt="Add New Alarm">
+                            </div>
+                        </a>
+                    </div>
+                </div>  
+            {{end}}
+        </div>
+    </div>
+</div>

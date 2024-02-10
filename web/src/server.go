@@ -98,7 +98,28 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	//session, _ := store.Get(r, "hydro-cookie")
 	alarms, _ := mongoDrive.GetIgnAlarms(bson.D{})
 	w = setHeaders(w)
-	renderTemplate(w, "index", alarms)
+	data := struct {
+		Alert []mongoDrive.Alert
+		Warn  []mongoDrive.Alert
+		Good  []mongoDrive.Alert
+	}{
+		Alert: []mongoDrive.Alert{},
+		Warn:  []mongoDrive.Alert{},
+		Good:  []mongoDrive.Alert{},
+	}
+
+	//Sorted alphabetically now sort by alert, warn, good
+	for _, alarm := range alarms {
+		switch alarm.State {
+		case "Alert":
+			data.Alert = append(data.Alert, alarm)
+		case "Warn":
+			data.Warn = append(data.Warn, alarm)
+		case "Good":
+			data.Good = append(data.Good, alarm)
+		}
+	}
+	renderTemplate(w, "index", data)
 }
 
 func chartHandler(w http.ResponseWriter, r *http.Request) {
@@ -520,10 +541,10 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 //															Main  																		//
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func runAlarms(){
+func runAlarms() {
 	ext := time.Hour
 	var err error
-	
+
 	for {
 		fmt.Println("Running Ignition call\nRunning Alert")
 		IgnData, err = clientTag.IgnCall()
@@ -533,9 +554,8 @@ func runAlarms(){
 		alarmDrive.RunIgnAlerts(IgnData)
 		time.Sleep(ext)
 	}
-	
-}
 
+}
 
 func main() {
 	var err error

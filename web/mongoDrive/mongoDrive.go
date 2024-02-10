@@ -2,6 +2,7 @@
 package mongoDrive
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/exp/slices"
 )
 
 type Alert struct {
@@ -85,12 +87,17 @@ func GetIgnAlarms(filter bson.D) ([]Alert, error) {
 		return nil, err
 	}
 
+	//Sort alpabetically by client name
+	slices.SortStableFunc(res, func(a, b Alert) int {
+		return cmp.Compare(a.Client, b.Client)
+	})
+
 	return res, nil
 
 }
 
-//Edit alarm takes in alarm edits struct and replaces the current alarm in db
-func EditIgnAlarm(a Alert) error{
+// Edit alarm takes in alarm edits struct and replaces the current alarm in db
+func EditIgnAlarm(a Alert) error {
 	client := getClient()
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
@@ -100,14 +107,14 @@ func EditIgnAlarm(a Alert) error{
 	coll := client.Database("Alerts").Collection("Ignition")
 	filter := bson.D{{Key: "client", Value: a.Client}, {Key: "site", Value: a.Site}, {Key: "tag", Value: a.Tag}, {Key: "type", Value: a.Type}}
 	_, err := coll.ReplaceOne(context.TODO(), filter, a)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//Delete ign alarm takes in a single alarm filter and deletes from db
-func DeleteIgnAlarm(f bson.D) error{
+// Delete ign alarm takes in a single alarm filter and deletes from db
+func DeleteIgnAlarm(f bson.D) error {
 	client := getClient()
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
@@ -116,10 +123,10 @@ func DeleteIgnAlarm(f bson.D) error{
 	}()
 	coll := client.Database("Alerts").Collection("Ignition")
 	dc, err := coll.DeleteOne(context.TODO(), f)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if dc.DeletedCount != 1{
+	if dc.DeletedCount != 1 {
 		return errors.New("delete failed to find alarm to delete")
 	}
 	return nil

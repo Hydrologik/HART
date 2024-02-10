@@ -110,17 +110,26 @@
                                 <th>Entry Date</th>
                             </thead>
                             <tbody>
-                                {{$Alert := "Alert"}}
-                                {{$Warn := "Warn"}}
-                                {{range $i, $a := .}}
-                                    <tr
-                                    {{if eq $a.State $Alert}}
-                                        style="background-color: rgb(240, 185, 196);"
-                                    {{else if eq $a.State $Warn}}
-                                        style="background-color: rgb(247, 226, 194);"
-                                    {{else}}
-                                        style="background-color: rgb(148, 240, 160);"
-                                    {{end}}>
+                                {{range $i, $a := .Alert}}
+                                    <tr style="background-color: rgb(240, 185, 196);">
+                                        <td></td>
+                                        <td>{{$a.State}}</td>
+                                        <td>{{$a.Type}}</td>
+                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
+                                        <td>{{$a.EntryDate}}</td>
+                                    </tr>
+                                {{end}}
+                                {{range $i, $a := .Warn}}
+                                    <tr style="background-color: rgb(247, 226, 194);">
+                                        <td></td>
+                                        <td>{{$a.State}}</td>
+                                        <td>{{$a.Type}}</td>
+                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
+                                        <td>{{$a.EntryDate}}</td>
+                                    </tr>
+                                {{end}}
+                                {{range $i, $a := .Good}}
+                                    <tr style="background-color: rgb(148, 240, 160);">
                                         <td></td>
                                         <td>{{$a.State}}</td>
                                         <td>{{$a.Type}}</td>

@@ -136,9 +136,9 @@ func chartHandler(w http.ResponseWriter, r *http.Request) {
 	)
 
 	items := make([]opts.PieData, 0)
-	items = append(items, opts.PieData{Name: "Alert", Value: alarmData.Alert})
-	items = append(items, opts.PieData{Name: "Warn", Value: alarmData.Warn})
-	items = append(items, opts.PieData{Name: "Good", Value: alarmData.Good})
+	items = append(items, opts.PieData{Name: fmt.Sprintf("Alert: %d", alarmData.Alert), Value: alarmData.Alert})
+	items = append(items, opts.PieData{Name: fmt.Sprintf("Warn: %d", alarmData.Warn), Value: alarmData.Warn})
+	items = append(items, opts.PieData{Name: fmt.Sprintf("Good: %d", alarmData.Good), Value: alarmData.Good})
 
 	//Custom render function to remove default document setting from go-echarts
 	pie.AddSeries("pie", items)

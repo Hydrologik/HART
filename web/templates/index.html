@@ -13,7 +13,7 @@
         <title>HART</title>
     </head>
     <body>
-        <nav class="uk-navbar-container" uk-navbar style="background-color: rgb(255, 210, 210);">
+        <nav class="uk-navbar-container" uk-navbar style="background-color: #0070C0; outline-width: 2; outline-color: black;">
             <div class="uk-navbar-left">
                 <ul class="uk-navbar-nav">
                     <li></li>
@@ -31,7 +31,7 @@
                 <ul class="uk-navbar-nav">
                     <li>
                         <form action="/logout" method="post">
-                            <button class="uk-button uk-button-secondary">logout</button>
+                            <button class="uk-button uk-button-default" style="background-color: white;">logout</button>
                         </form>
                     </li>
                     <li></li>
@@ -40,7 +40,7 @@
         </nav>
         <div id="main-body" style="background-color: rgb(255, 255, 255);">
             <div class="columns">
-                <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
+                <div class="column is-fullheight is-1" style="width: 125px; background-color: #59ace8;">
                     <div class="block"></div>
                     <div>
                         <section class="hero is-fullheight">
@@ -115,7 +115,7 @@
                                         <td></td>
                                         <td>{{$a.State}}</td>
                                         <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
+                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
                                         <td>{{$a.EntryDate}}</td>
                                     </tr>
                                 {{end}}
@@ -124,16 +124,16 @@
                                         <td></td>
                                         <td>{{$a.State}}</td>
                                         <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
+                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
                                         <td>{{$a.EntryDate}}</td>
                                     </tr>
                                 {{end}}
                                 {{range $i, $a := .Good}}
-                                    <tr style="background-color: rgb(148, 240, 160);">
+                                    <tr style="background-color: #9dd0f5;">
                                         <td></td>
                                         <td>{{$a.State}}</td>
                                         <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}{{$a.Site}}/{{$a.Tag}}</a></td>
+                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
                                         <td>{{$a.EntryDate}}</td>
                                     </tr>
                                 {{end}}

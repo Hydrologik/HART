@@ -1,5 +1,5 @@
 <div class="columns">
-    <div class="column is-fullheight is-1" style="width: 125px; background-color: rgb(255, 105, 105);">
+    <div class="column is-fullheight is-1" style="width: 125px; background-color: #59ace8;">
         <div class="block"></div>
         <section class="hero is-fullheight">
             <aside class="menu" uk-sticky>
@@ -34,11 +34,11 @@
             {{$Cs := .Cs}}
             {{$Cn := .Cn}}
             <div class="block">
-                <div class="uk-grid-small uk-child-width-1-3@s uk-text-center" uk-grid>
+                <div class="uk-grid-small uk-child-width-1-5@s uk-text-center" uk-grid>
                     {{ range $i, $c := .Alert}}
                     <a href="{{$Cs}}{{$c.Name}}" hx-get="{{$Cs}}{{$c.Name}}" hx-target="#main-body">
                         <div class="uk-card uk-card-default uk-card-body uk-card-hover" style="background-color: rgb(233, 160, 160);">
-                            <p>{{$c.Name}}</p>
+                            <h3 class="uk-card-title">{{$c.Name}}</h3>
                             <p>{{$Cn}}: {{$c.ChildCount}}</p>
                             <p>Alert: {{$c.Alert}}</p>
                             <p>Warn: {{$c.Warn}}</p>
@@ -49,7 +49,7 @@
                     {{ range $i, $c := .Warn}}
                     <a href="{{$Cs}}{{$c.Name}}" hx-get="{{$Cs}}{{$c.Name}}" hx-target="#main-body">
                         <div class="uk-card uk-card-default uk-card-body uk-card-hover" style="background-color: rgb(233, 232, 160);">
-                            <p>{{$c.Name}}</p>
+                            <h3 class="uk-card-title">{{$c.Name}}</h3>
                             <p>{{$Cn}}: {{$c.ChildCount}}</p>
                             <p>Alert: {{$c.Alert}}</p>
                             <p>Warn: {{$c.Warn}}</p>
@@ -59,8 +59,8 @@
                     {{end}}
                     {{ range $i, $c := .Good}}
                     <a href="{{$Cs}}{{$c.Name}}" hx-get="{{$Cs}}{{$c.Name}}" hx-target="#main-body">
-                        <div class="uk-card uk-card-default uk-card-body uk-card-hover" style="background-color: rgb(172, 233, 160);">
-                            <p>{{$c.Name}}</p>
+                        <div class="uk-card uk-card-default uk-card-body uk-card-hover" style="background-color: #9dd0f5;">
+                            <h3 class="uk-card-title">{{$c.Name}}</h3>
                             <p>{{$Cn}}: {{$c.ChildCount}}</p>
                             <p>Alert: {{$c.Alert}}</p>
                             <p>Warn: {{$c.Warn}}</p>

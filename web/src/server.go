@@ -132,7 +132,7 @@ func chartHandler(w http.ResponseWriter, r *http.Request) {
 	pie := charts.NewPie()
 	pie.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{Title: "Alarm Data"}),
-		charts.WithColorsOpts(opts.Colors{"#ea9999", "#ffe599", "#bff8a7"}),
+		charts.WithColorsOpts(opts.Colors{"#ea9999", "#ffe599", "#9dd0f5"}),
 	)
 
 	items := make([]opts.PieData, 0)

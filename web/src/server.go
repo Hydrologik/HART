@@ -98,25 +98,69 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	//session, _ := store.Get(r, "hydro-cookie")
 	alarms, _ := mongoDrive.GetIgnAlarms(bson.D{})
 	w = setHeaders(w)
+	type aggData struct {
+		Count  int
+		Source string
+		Types  map[string]int
+	}
 	data := struct {
-		Alert []mongoDrive.Alert
-		Warn  []mongoDrive.Alert
-		Good  []mongoDrive.Alert
+		Alert map[string]aggData
+		Warn  map[string]aggData
+		Good  map[string]aggData
 	}{
-		Alert: []mongoDrive.Alert{},
-		Warn:  []mongoDrive.Alert{},
-		Good:  []mongoDrive.Alert{},
+		Alert: make(map[string]aggData),
+		Warn:  make(map[string]aggData),
+		Good:  make(map[string]aggData),
 	}
 
 	//Sorted alphabetically now sort by alert, warn, good
 	for _, alarm := range alarms {
 		switch alarm.State {
 		case "Alert":
-			data.Alert = append(data.Alert, alarm)
+			ag, ok := data.Alert[alarm.Client]
+			if !ok {
+				data.Alert[alarm.Client] = aggData{Count: 1, Source: alarm.Client, Types: map[string]int{alarm.Type: 1}}
+			} else {
+				ag.Count++
+				ty, ok := ag.Types[alarm.Type]
+				if !ok {
+					ag.Types[alarm.Type] = 1
+				} else {
+					ty++
+					ag.Types[alarm.Type] = ty
+				}
+				data.Alert[alarm.Client] = ag
+			}
 		case "Warn":
-			data.Warn = append(data.Warn, alarm)
+			ag, ok := data.Warn[alarm.Client]
+			if !ok {
+				data.Warn[alarm.Client] = aggData{Count: 1, Source: alarm.Client, Types: map[string]int{alarm.Type: 1}}
+			} else {
+				ag.Count++
+				ty, ok := ag.Types[alarm.Type]
+				if !ok {
+					ag.Types[alarm.Type] = 1
+				} else {
+					ty++
+					ag.Types[alarm.Type] = ty
+				}
+				data.Warn[alarm.Client] = ag
+			}
 		case "Good":
-			data.Good = append(data.Good, alarm)
+			ag, ok := data.Good[alarm.Client]
+			if !ok {
+				data.Good[alarm.Client] = aggData{Count: 1, Source: alarm.Client, Types: map[string]int{alarm.Type: 1}}
+			} else {
+				ag.Count++
+				ty, ok := ag.Types[alarm.Type]
+				if !ok {
+					ag.Types[alarm.Type] = 1
+				} else {
+					ty++
+					ag.Types[alarm.Type] = ty
+				}
+				data.Good[alarm.Client] = ag
+			}
 		}
 	}
 	renderTemplate(w, "index", data)
@@ -149,20 +193,21 @@ func chartHandler(w http.ResponseWriter, r *http.Request) {
 func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 	w = setHeaders(w)
 	type cardStr struct {
-		Er    bool
-		Ms    string
-		Cs    string
-		Cn    string
-		Bc    []string
-		Alert []clientTag.Card
-		Warn  []clientTag.Card
-		Good  []clientTag.Card
+		Er     bool
+		Ms     string
+		Cs     string
+		Cn     string
+		Parent string
+		Bc     []string
+		Alert  []clientTag.Card
+		Warn   []clientTag.Card
+		Good   []clientTag.Card
 	}
 	ty := r.URL.Query()["type"][0]
 	var bcStr []string
 	var data []clientTag.Card
 	var err error
-	var cs, cn string
+	var cs, cn, parent string
 
 	//We use switch to customize card views that will generally be very simillar
 	switch ty {
@@ -171,6 +216,7 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 		bcStr = []string{
 			"<span>Ignition</span>",
 		}
+		parent = "Ignition"
 		//Child String indicates the href for the next level of depth
 		cs = "/ignCards?type=site&c="
 		cn = "Sites"
@@ -185,6 +231,7 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		cs = fmt.Sprintf("/ignCards?type=tag&c=%s&s=", c)
 		cn = "Tags"
+		parent = c
 		data, err = clientTag.GetCardList(ty, IgnData, c, "")
 	case "tag":
 		c := r.URL.Query()["c"][0]
@@ -196,6 +243,7 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		cs = fmt.Sprintf("/ignTags?&c=%s&s=%s&t=", c, s)
 		cn = "Tag metrics"
+		parent = s
 		data, err = clientTag.GetCardList(ty, IgnData, c, s)
 	}
 
@@ -221,7 +269,7 @@ func ignCardHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Warn: warn, Alert: alert, Good: good, Cs: cs, Cn: cn})
+	renderTemplate(w, "ignCards", cardStr{Er: false, Ms: "", Bc: bcStr, Warn: warn, Alert: alert, Good: good, Cs: cs, Cn: cn, Parent: parent})
 }
 
 func ignTagHandler(w http.ResponseWriter, r *http.Request) {
@@ -247,6 +295,7 @@ func ignTagHandler(w http.ResponseWriter, r *http.Request) {
 		TagVals map[string]interface{}
 		Alarms  []mongoDrive.Alert
 		Path    map[string]string
+		Parent  string
 	}
 
 	tagVal := IgnData[c].(map[string]interface{})[s].(map[string]interface{})[t].(map[string]interface{})
@@ -260,7 +309,7 @@ func ignTagHandler(w http.ResponseWriter, r *http.Request) {
 
 	//For adding a new alarm remove the option to add already added alarms
 
-	data := tagData{Er: false, Ms: "", Bc: bc, TagVals: tagVal, Alarms: alarms, Path: path}
+	data := tagData{Er: false, Ms: "", Bc: bc, TagVals: tagVal, Alarms: alarms, Path: path, Parent: t}
 	renderTemplate(w, "ignTags", data)
 
 }

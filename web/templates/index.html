@@ -25,7 +25,7 @@
                 </ul>
             </div>
             <div class="uk-navbar-center">
-                <a class="uk-navbar-item uk-logo" href="#HART-modal" uk-toggle>HART</a>
+                <a class="uk-navbar-item uk-logo uk-text-bolder" href="#HART-modal" uk-toggle>HART</a>
             </div>
             <div class="uk-navbar-right">
                 <ul class="uk-navbar-nav">
@@ -101,40 +101,49 @@
                     </div>
                     <h1 class="uk-article-title">Alarms</h1>
                     <div style="overflow-y: scroll; height: 400px;">
-                        <table class="uk-table uk-table-justify uk-table-divider">
+                        <table class="uk-table  uk-table-divider">
                             <thead>
                                 <th></th>
                                 <th>State</th>
-                                <th>Type</th>
+                                <th>Types</th>
                                 <th>Source</th>
-                                <th>Entry Date</th>
+                                <th>Count</th>
                             </thead>
                             <tbody>
-                                {{range $i, $a := .Alert}}
+                                {{range $k, $v := .Alert}}
                                     <tr style="background-color: rgb(240, 185, 196);">
                                         <td></td>
-                                        <td>{{$a.State}}</td>
-                                        <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
-                                        <td>{{$a.EntryDate}}</td>
+                                        <td>Alert</td>
+                                        <td>{{range $t, $i := $v.Types}}
+                                                {{$t}}_{{$i}} 
+                                            {{end}}
+                                        </td>
+                                        <td><a href="/ignCards?type=site&c={{$k}}" hx-get="/ignCards?type=site&c={{$k}}" hx-target="#main-body">{{$k}}</a></td>
+                                        <td>{{$v.Count}}</td>
                                     </tr>
                                 {{end}}
-                                {{range $i, $a := .Warn}}
+                                {{range $k, $v := .Warn}}
                                     <tr style="background-color: rgb(247, 226, 194);">
                                         <td></td>
-                                        <td>{{$a.State}}</td>
-                                        <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
-                                        <td>{{$a.EntryDate}}</td>
+                                        <td>Warn</td>
+                                        <td>{{range $t, $i := $v.Types}}
+                                            {{$t}}_{{$i}} 
+                                        {{end}}
+                                        <td>
+                                        <td><a href="/ignCards?type=site&c={{$k}}" hx-get="/ignCards?type=site&c={{$k}}" hx-target="#main-body">{{$k}}</a></td>
+                                        <td>{{$v.Count}}</td>
                                     </tr>
                                 {{end}}
-                                {{range $i, $a := .Good}}
+                                {{range $k, $v := .Good}}
                                     <tr style="background-color: #9dd0f5;">
                                         <td></td>
-                                        <td>{{$a.State}}</td>
-                                        <td>{{$a.Type}}</td>
-                                        <td><a href="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-get="/ignTags?c={{$a.Client}}&s={{$a.Site}}&t={{$a.Tag}}" hx-target="#main-body">{{$a.Client}}/{{$a.Site}}/{{$a.Tag}}</a></td>
-                                        <td>{{$a.EntryDate}}</td>
+                                        <td>Good</td>
+                                        <td>{{range $t, $i := $v.Types}}
+                                            {{$t}}_{{$i}} 
+                                        {{end}}
+                                        </td>
+                                        <td><a href="/ignCards?type=site&c={{$k}}" hx-get="/ignCards?type=site&c={{$k}}" hx-target="#main-body">{{$k}}</a></td>
+                                        <td>{{$v.Count}}</td>
                                     </tr>
                                 {{end}}
                             </tbody>

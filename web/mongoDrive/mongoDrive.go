@@ -17,6 +17,7 @@ import (
 )
 
 type Alert struct {
+	Name      string
 	Client    string
 	Site      string
 	Tag       string

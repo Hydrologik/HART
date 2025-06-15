@@ -107,10 +107,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		Alert map[string]aggData
 		Warn  map[string]aggData
 		Good  map[string]aggData
+		Igni  []string
 	}{
 		Alert: make(map[string]aggData),
 		Warn:  make(map[string]aggData),
 		Good:  make(map[string]aggData),
+		Igni:  clientTag.GetKeyList(IgnData),
 	}
 
 	//Sorted alphabetically now sort by alert, warn, good
